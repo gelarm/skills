@@ -1,6 +1,6 @@
 ---
 name: gims-automations-developer
-description: Управление автоматизацией GIMS - скрипты, типы источников данных, активаторы. Используй когда нужно создать/изменить/удалить скрипты или типы в GIMS.
+description: Skill for developing GIMS automation - scripts, datasource types, and activators
 allowed-tools: Bash, Read, Write, Glob, Grep
 ---
 

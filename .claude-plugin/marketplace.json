@@ -11,14 +11,13 @@
   },
   "plugins": [
     {
-      "name": "gims-automations-developer",
-      "description": "Skill for developing GIMS automation - scripts, datasource types, and activators",
-      "source": "./skills/gims-automations-developer",
-      "version": "1.0.0",
-	  "author": {
-		"name": "Yuri Dyakonov",
-		"email": "ydyakonov@gelarm.com"
-	  }
+      "name": "",
+      "description": "GIMS automations development skills",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/gims-automations-developer"
+      ]
     }
   ]
 }
