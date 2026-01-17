@@ -41,7 +41,7 @@ def build_folder_paths(folders: list[dict]) -> dict[int, str]:
 def cmd_list_folders(args):
     """List all activator type folders."""
     client = GimsClient()
-    folders = client.request("GET", "/activator-types/folder/")
+    folders = client.request("GET", "/activator_type/folder/")
     paths = build_folder_paths(folders)
 
     result = []
@@ -62,7 +62,7 @@ def cmd_create_folder(args):
     data = {"name": args.name}
     if args.parent_folder_id:
         data["parent_folder_id"] = args.parent_folder_id
-    result = client.request("POST", "/activator-types/folder/", json=data)
+    result = client.request("POST", "/activator_type/folder/", json=data)
     print_json(result)
 
 
@@ -79,14 +79,14 @@ def cmd_update_folder(args):
         print_error("No changes specified")
         sys.exit(1)
 
-    result = client.request("PATCH", f"/activator-types/folder/{args.folder_id}/", json=data)
+    result = client.request("PATCH", f"/activator_type/folder/{args.folder_id}/", json=data)
     print_json(result)
 
 
 def cmd_delete_folder(args):
     """Delete an activator type folder."""
     client = GimsClient()
-    client.request("DELETE", f"/activator-types/folder/{args.folder_id}/")
+    client.request("DELETE", f"/activator_type/folder/{args.folder_id}/")
     print(f"Folder {args.folder_id} deleted successfully")
 
 
@@ -95,10 +95,10 @@ def cmd_delete_folder(args):
 def cmd_list(args):
     """List all activator types."""
     client = GimsClient()
-    folders = client.request("GET", "/activator-types/folder/")
+    folders = client.request("GET", "/activator_type/folder/")
     paths = build_folder_paths(folders)
 
-    types = client.request("GET", "/activator-types/activator-type/")
+    types = client.request("GET", "/activator_types/activator_type/")
 
     if args.folder_id:
         types = [t for t in types if t.get("folder") == args.folder_id]
@@ -121,7 +121,7 @@ def cmd_list(args):
 def cmd_get(args):
     """Get an activator type by ID."""
     client = GimsClient()
-    act_type = client.request("GET", f"/activator-types/activator-type/{args.type_id}/")
+    act_type = client.request("GET", f"/activator_types/activator_type/{args.type_id}/")
 
     # Filter code unless explicitly requested
     if not args.include_code:
@@ -130,7 +130,7 @@ def cmd_get(args):
     result = {"type": act_type}
 
     if args.include_properties:
-        properties = client.request("GET", f"/activator-types/property/?activator_type_id={args.type_id}")
+        properties = client.request("GET", f"/activator_types/properties/?activator_type_id={args.type_id}")
         result["properties"] = properties
 
     print_json(result)
@@ -139,7 +139,7 @@ def cmd_get(args):
 def cmd_get_code(args):
     """Get only activator type code."""
     client = GimsClient()
-    act_type = client.request("GET", f"/activator-types/activator-type/{args.type_id}/")
+    act_type = client.request("GET", f"/activator_types/activator_type/{args.type_id}/")
     print(act_type.get("code", ""))
 
 
@@ -165,7 +165,7 @@ def cmd_create(args):
     if args.folder_id:
         data["folder"] = args.folder_id
 
-    result = client.request("POST", "/activator-types/activator-type/", json=data)
+    result = client.request("POST", "/activator_types/activator_type/", json=data)
     print_json(result)
 
 
@@ -192,14 +192,14 @@ def cmd_update(args):
         print_error("No changes specified")
         sys.exit(1)
 
-    result = client.request("PATCH", f"/activator-types/activator-type/{args.type_id}/", json=data)
+    result = client.request("PATCH", f"/activator_types/activator_type/{args.type_id}/", json=data)
     print_json(result)
 
 
 def cmd_delete(args):
     """Delete an activator type."""
     client = GimsClient()
-    client.request("DELETE", f"/activator-types/activator-type/{args.type_id}/")
+    client.request("DELETE", f"/activator_types/activator_type/{args.type_id}/")
     print(f"Activator type {args.type_id} deleted successfully")
 
 
@@ -207,7 +207,7 @@ def cmd_search(args):
     """Search activator types."""
     import re
     client = GimsClient()
-    types = client.request("GET", "/activator-types/activator-type/")
+    types = client.request("GET", "/activator_types/activator_type/")
 
     query = args.query
     flags = 0 if args.case_sensitive else re.IGNORECASE
@@ -233,7 +233,7 @@ def cmd_search(args):
         for t in types:
             if t["id"] in found_ids:
                 continue
-            full_type = client.request("GET", f"/activator-types/activator-type/{t['id']}/")
+            full_type = client.request("GET", f"/activator_types/activator_type/{t['id']}/")
             code = full_type.get("code", "")
             if re.search(query, code, flags):
                 results.append({
@@ -251,7 +251,7 @@ def cmd_search(args):
 def cmd_list_properties(args):
     """List properties of an activator type."""
     client = GimsClient()
-    properties = client.request("GET", f"/activator-types/property/?activator_type_id={args.type_id}")
+    properties = client.request("GET", f"/activator_types/properties/?activator_type_id={args.type_id}")
     print_json({"properties": properties})
 
 
@@ -277,7 +277,7 @@ def cmd_create_property(args):
     if args.default_dict_value_id:
         data["default_dict_value_id"] = args.default_dict_value_id
 
-    result = client.request("POST", "/activator-types/property/", json=data)
+    result = client.request("POST", "/activator_types/properties/", json=data)
     print_json(result)
 
 
@@ -303,14 +303,14 @@ def cmd_update_property(args):
         print_error("No changes specified")
         sys.exit(1)
 
-    result = client.request("PATCH", f"/activator-types/property/{args.property_id}/", json=data)
+    result = client.request("PATCH", f"/activator_types/properties/{args.property_id}/", json=data)
     print_json(result)
 
 
 def cmd_delete_property(args):
     """Delete an activator type property."""
     client = GimsClient()
-    client.request("DELETE", f"/activator-types/property/{args.property_id}/")
+    client.request("DELETE", f"/activator_types/properties/{args.property_id}/")
     print(f"Property {args.property_id} deleted successfully")
 
 
