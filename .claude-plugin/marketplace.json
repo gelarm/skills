@@ -1,0 +1,21 @@
+{
+  "name": "gims-agent-skills",
+  "owner": {
+    "name": "Yuri Dyakonov",
+    "email": "ydyakonov@gelarm.com"
+  },
+  "metadata": {
+    "description": "Gelarm GIMS skills",
+    "version": "1.0.0",
+    "license": "MIT"
+  },
+  "plugins": [
+    {
+      "name": "gims-skills",
+      "description": "Skills for managing GIMS automation - scripts, datasource types, and activators",
+      "source": ".",
+      "strict": true,
+      "skills": ["gims-automation-developer"]
+    }
+  ]
+}
