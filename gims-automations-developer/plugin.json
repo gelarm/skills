@@ -1,0 +1,10 @@
+{
+  "name": "gims-automations-developer",
+  "version": "1.0.0",
+  "description": "Skills for managing GIMS automation - scripts, datasource types, and activators",
+  "author": {
+    "name": "Yuri Dyakonov",
+    "email": "ydyakonov@gelarm.com"
+  },
+  "skills": ["gims-automations"]
+}
