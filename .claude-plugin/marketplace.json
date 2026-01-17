@@ -11,7 +11,7 @@
   },
   "plugins": [
     {
-      "name": "",
+      "name": "development-skills",
       "description": "GIMS automations development skills",
       "source": "./",
       "strict": false,
