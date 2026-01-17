@@ -46,16 +46,16 @@ Skill автоматически обновляет access token при полу
 
 ```bash
 # Вариант 1: В проект
-cp -r gims-automation-skill /path/to/project/.claude/skills/
+cp -r gims-automations-developer /path/to/project/.claude/skills/
 
 # Вариант 2: Глобально (персональные skills)
-cp -r gims-automation-skill ~/.claude/skills/
+cp -r gims-automations-developer ~/.claude/skills/
 ```
 
 ### 4. Проверить работу
 
 ```bash
-cd gims-automation-skill/scripts
+cd gims-automations-developer/scripts
 python gims_scripts.py list
 python gims_references.py value-types
 ```
@@ -73,7 +73,7 @@ python gims_references.py value-types
 ## Структура
 
 ```
-gims-automation-skill/
+gims-automations-developer/
 ├── SKILL.md                      # Инструкции для Claude
 ├── README.md                     # Эта документация
 └── scripts/

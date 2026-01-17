@@ -15,7 +15,7 @@
       "description": "Skills for managing GIMS automation - scripts, datasource types, and activators",
       "source": ".",
       "strict": true,
-      "skills": ["gims-automation-developer"]
+      "skills": ["gims-automations-developer"]
     }
   ]
 }

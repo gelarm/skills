@@ -1,5 +1,5 @@
 ---
-name: gims-automation
+name: gims-automations
 description: Управление автоматизацией GIMS - скрипты, типы источников данных, активаторы. Используй когда нужно создать/изменить/удалить скрипты или типы в GIMS.
 allowed-tools: Bash, Read, Write, Glob, Grep
 ---
@@ -33,7 +33,7 @@ echo $GIMS_ACCESS_TOKEN
 При вызове команд используй относительный путь от корня skill:
 
 ```bash
-# Скрипты находятся в gims-automation-developer/scripts/
+# Скрипты находятся в gims-automations-developer/scripts/
 python scripts/gims_scripts.py [команды]
 python scripts/gims_datasource_types.py [команды]
 # и т.д.
