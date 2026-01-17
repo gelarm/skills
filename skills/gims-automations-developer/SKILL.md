@@ -1,5 +1,5 @@
 ---
-name: gims-automations
+name: gims-automations-developer
 description: Управление автоматизацией GIMS - скрипты, типы источников данных, активаторы. Используй когда нужно создать/изменить/удалить скрипты или типы в GIMS.
 allowed-tools: Bash, Read, Write, Glob, Grep
 ---
