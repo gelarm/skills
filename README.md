@@ -13,13 +13,13 @@ You can register this repository as a Claude Code Plugin marketplace by running 
 
 Then, to install a specific set of skills:
 1. Select `Browse and install plugins`
-2. Select `gims-agent-skills`
-3. Select `gims-skills`
+2. Select `gelarm-skills-marketplace`
+3. Select `development-skills`
 4. Select `Install now`
 
 Alternatively, directly install either Plugin via:
 ```
-/plugin install gims-skills@gims-agent-skills
+/plugin install development-skills@gelarm-skills-marketplace
 ```
 
 ## Qwen Code
