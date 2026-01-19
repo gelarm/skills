@@ -170,6 +170,253 @@ python scripts/gims_logs.py stream <script_id> --keep-timestamp
 python scripts/gims_logs.py stream <script_id> --end-markers "DONE" "END"
 ```
 
+### Local-First Workflow (gims_sync.py)
+
+**Ключевой принцип:** Код автоматизаций **НЕ загружается в контекст LLM** — только метаданные. Код записывается/читается напрямую из файлов, минуя контекст. **Экономия токенов: ~95%** при работе с компонентами автоматизации.
+
+**Git = source of truth, GIMS = deployment target**
+
+**ВАЖНО:** Git операции (pull, add, commit, push) выполняются через Bash, а не через этот скрипт.
+
+#### Новые команды
+
+| Команда | Описание |
+|---------|----------|
+| `checkout` | Выгрузить компонент из GIMS в локальные файлы |
+| `checkout-folder` | Выгрузить все компоненты из папки GIMS |
+| `publish` | Опубликовать локальные файлы в GIMS (двухэтапный) |
+| `publish --confirm` | Подтвердить и выполнить publish |
+| `publish-all` | Опубликовать все компоненты из директории |
+| `status` | Показать состояние компонентов (local vs GIMS) |
+| `find-duplicates` | Поиск дубликатов по имени (fuzzy match) |
+| `validate-code` | Проверить синтаксис Python |
+| `compare` | Сравнить версии (по дате) |
+
+#### Checkout — выгрузка из GIMS
+
+```bash
+# Checkout скрипта по имени
+python scripts/gims_sync.py checkout --component-type script --name "ICMP Monitor" --output-dir ./scripts/icmp_monitor/
+
+# Checkout скрипта по ID
+python scripts/gims_sync.py checkout --component-type script --id 123 --output-dir ./scripts/icmp_monitor/
+
+# Checkout типа источника данных
+python scripts/gims_sync.py checkout --component-type datasource_type --name "Prometheus" --output-dir ./datasource_types/prometheus/
+
+# Checkout типа активатора
+python scripts/gims_sync.py checkout --component-type activator_type --name "HealthCheck" --output-dir ./activator_types/health_check/
+
+# Предварительный просмотр (без записи файлов)
+python scripts/gims_sync.py checkout --component-type script --name "ICMP Monitor" --dry-run
+
+# Принудительная перезапись локальных файлов
+python scripts/gims_sync.py checkout --component-type script --name "ICMP Monitor" --force
+
+# Checkout всех скриптов из папки GIMS
+python scripts/gims_sync.py checkout-folder --component-type script --folder-name "Мониторинг" --output-base-dir ./scripts/
+```
+
+**Вывод команды checkout (JSON — код НЕ в контексте):**
+```json
+{
+  "status": "checked_out",
+  "gims_id": 123,
+  "name": "ICMP Monitor",
+  "output_dir": "./scripts/icmp_monitor",
+  "files": ["meta.yaml", "code.py"],
+  "code_lines": 245,
+  "gims_updated_at": "2026-01-19T12:00:00Z"
+}
+```
+
+#### Publish — публикация в GIMS (двухэтапный)
+
+**Этап 1: Предварительный просмотр изменений**
+```bash
+python scripts/gims_sync.py publish --input-dir ./scripts/icmp_monitor/
+```
+
+**Вывод (JSON):**
+```json
+{
+  "status": "pending_confirmation",
+  "gims_id": 123,
+  "name": "ICMP Monitor",
+  "action": "update",
+  "changes": {
+    "code": "modified",
+    "properties": {"add": [], "update": ["timeout"], "delete": ["old_prop"]}
+  },
+  "requires_confirmation": ["delete properties: old_prop"]
+}
+```
+
+**Этап 2: Подтверждение и выполнение**
+```bash
+python scripts/gims_sync.py publish --input-dir ./scripts/icmp_monitor/ --confirm
+```
+
+**Вывод (JSON):**
+```json
+{
+  "status": "published",
+  "gims_id": 123,
+  "name": "ICMP Monitor",
+  "action": "updated"
+}
+```
+
+**Создание нового компонента (gims_id: null в meta.yaml):**
+```bash
+# Сначала проверить дубликаты
+python scripts/gims_sync.py find-duplicates --name "New Script" --component-type script
+
+# Затем publish
+python scripts/gims_sync.py publish --input-dir ./scripts/new_script/ --confirm
+```
+
+**Массовая публикация:**
+```bash
+# Предварительный просмотр
+python scripts/gims_sync.py publish-all --base-dir ./scripts/
+
+# Выполнение
+python scripts/gims_sync.py publish-all --base-dir ./scripts/ --confirm
+```
+
+#### Status — проверка состояния
+
+```bash
+python scripts/gims_sync.py status --base-dir ./scripts/
+```
+
+**Вывод (JSON):**
+```json
+{
+  "base_dir": "./scripts",
+  "components": [
+    {"name": "Script A", "gims_id": 123, "status": "in_sync", "path": "./scripts/script_a"},
+    {"name": "Script B", "gims_id": 456, "status": "local_newer", "path": "./scripts/script_b"},
+    {"name": "Script C", "gims_id": null, "status": "local_only", "path": "./scripts/script_c"}
+  ],
+  "summary": {
+    "total": 3,
+    "in_sync": 1,
+    "local_newer": 1,
+    "gims_newer": 0,
+    "local_only": 1,
+    "gims_deleted": 0
+  }
+}
+```
+
+**Статусы компонентов:**
+- `in_sync` — версии совпадают
+- `local_newer` — локальная версия новее (рекомендуется publish)
+- `gims_newer` — версия в GIMS новее (рекомендуется checkout)
+- `local_only` — компонент только локально (gims_id: null)
+- `gims_deleted` — компонент удалён в GIMS
+
+#### Find Duplicates — поиск дубликатов
+
+```bash
+python scripts/gims_sync.py find-duplicates --name "ICMP Monitor" --component-type script --threshold 0.6
+```
+
+**Вывод (JSON):**
+```json
+{
+  "query": "ICMP Monitor",
+  "component_type": "script",
+  "threshold": 0.6,
+  "matches": [
+    {"gims_id": 123, "name": "ICMP Monitor", "match_ratio": 1.0},
+    {"gims_id": 456, "name": "ICMP Monitoring", "match_ratio": 0.87}
+  ]
+}
+```
+
+#### Другие команды
+
+```bash
+# Проверка синтаксиса Python
+python scripts/gims_sync.py validate-code --file ./scripts/icmp_monitor/code.py
+
+# Сравнение версий (по дате из meta.yaml)
+python scripts/gims_sync.py compare --component-type script --gims-name "ICMP Monitor" --git-exported-at "2026-01-19T10:00:00Z"
+```
+
+#### Структура Git-репозитория
+
+```
+gims-automations/
+├── scripts/
+│   └── icmp_monitor/
+│       ├── meta.yaml        # gims_id, name, description, gims_updated_at
+│       └── code.py          # Python код
+├── datasource_types/
+│   └── prometheus/
+│       ├── meta.yaml        # gims_id типа
+│       ├── properties.yaml  # Свойства типа (gims_id каждого свойства)
+│       └── methods/
+│           └── query/
+│               ├── meta.yaml    # gims_id метода
+│               ├── code.py      # Код метода
+│               └── params.yaml  # Параметры (gims_id каждого параметра)
+└── activator_types/
+    └── health_check/
+        ├── meta.yaml        # gims_id типа
+        ├── code.py          # Код активатора
+        └── properties.yaml  # Свойства (gims_id каждого свойства)
+```
+
+**Формат meta.yaml:**
+```yaml
+gims_id: 123                              # ID компонента в GIMS (null для новых)
+name: ICMP Monitor
+description: Мониторинг ICMP
+gims_folder: /Мониторинг
+gims_folder_id: 5
+gims_updated_at: 2026-01-19T12:00:00Z     # Дата обновления в GIMS
+exported_at: 2026-01-19T12:30:00Z         # Дата выгрузки
+exported_from: https://gims.example.com
+```
+
+#### Полный Workflow
+
+```bash
+# 1. Checkout компонентов из GIMS
+python scripts/gims_sync.py checkout-folder --component-type script --folder-name "Мониторинг" --output-base-dir ./scripts/
+
+# 2. Редактирование через Claude Code Edit tool
+# (код редактируется напрямую в файлах, не проходя через контекст LLM)
+
+# 3. Проверка статуса
+python scripts/gims_sync.py status --base-dir ./scripts/
+
+# 4. Коммит в Git
+git add scripts/
+git commit -m "Update monitoring scripts"
+
+# 5. Publish изменений в GIMS (preview)
+python scripts/gims_sync.py publish --input-dir ./scripts/icmp_monitor/
+
+# 6. Publish изменений в GIMS (confirm)
+python scripts/gims_sync.py publish --input-dir ./scripts/icmp_monitor/ --confirm
+
+# 7. Push в Git
+git push origin main
+```
+
+#### Legacy команды (обратная совместимость)
+
+Старые команды продолжают работать как алиасы:
+- `export-script` → `checkout --component-type script`
+- `import-script` → `publish`
+- `export-datasource-type` → `checkout --component-type datasource_type`
+- `export-activator-type` → `checkout --component-type activator_type`
+
 ## Важные замечания
 
 ### Код в ответах
